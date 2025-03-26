@@ -1,0 +1,415 @@
+/* --- Styles for Back Button and Header --- */
+
+.page-header {
+  display: flex;
+  align-items: center; /* Vertically center button and title */
+  gap: 15px; /* Space between button and title */
+  margin-bottom: 25px; /* Space below the header area */
+  width: 100%; /* Ensure it takes full width */
+}
+
+.back-button {
+  display: inline-flex; /* Use inline-flex for alignment */
+  align-items: center;
+  justify-content: center;
+  background-color: #4CAF50; /* Green */
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  text-decoration: none; /* Remove underline from link */
+  font-size: 1.3em; /* Adjust size of the arrow */
+  font-weight: bold;
+  line-height: 1; /* Prevent extra vertical space */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  flex-shrink: 0; /* Prevent the button from shrinking */
+}
+
+.back-button:hover {
+  background-color: #45a049; /* Darker green on hover */
+}
+
+.page-title {
+  /* Adjust title margin if needed, default h1 margins might interfere */
+  margin: 0;
+  /* You might want to ensure the title doesn't wrap awkwardly */
+  flex-grow: 1; /* Allow title to take remaining space if needed */
+  text-align: center; /* Optional: center title if button is on left */
+  /* If you want title strictly next to button, remove text-align: center */
+}
+
+/* Adjust container padding if necessary */
+/* .container { */
+  /* Example: Adjust top padding if header feels too close to edge */
+  /* padding-top: 30px; */
+/* } */
+
+/* Ensure h1 doesn't have excessive margin pushing things down */
+h1.page-title {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+
+/* Optimized CSS with Baloo 2 Font, Instant Close, Fused Date Picker, Button Effects, Small NeKaPa Fields, and List Width Control */
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #f2f2f2;
+  font-family: "Baloo 2", sans-serif;
+  font-weight: 400;
+  font-optical-sizing: auto;
+  font-size: 16px; /* Base font size */
+  color: #333;
+}
+
+.container {
+  max-width: 950px;
+  margin: 20px auto;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,.1);
+}
+
+/* --- Add this new rule for the narrower login container --- */
+.container.container--narrow {
+  max-width: 400px; /* Specific narrower width for login */
+}
+
+/* Style for the added page title */
+.page-title {
+  text-align: center;
+  font-size: 1.5em; /* Adjust size as needed */
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 25px; /* Creates space below the title, before the grid starts */
+}
+
+/* Grid layout helper (Used to space the rows) */
+.grid {
+  display: grid;
+  row-gap: 25px; /* This existing rule now provides space between rows */
+}
+
+/* Grid layout helper (if used consistently) */
+.grid {
+  display: grid;
+  row-gap: 25px;
+}
+
+/* Standard 3-column row */
+.row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 30px;
+  align-items: end; /* Align items to the bottom */
+}
+
+/* Special 2-column row */
+.row-two-col {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 30px;
+  align-items: end;
+}
+
+/* Style for field labels */
+.field-label {
+  display: block;
+  margin-bottom: 8px; /* Original spacing */
+  font-weight: 600;
+  font-size: 0.95em;
+  color: #555;
+}
+
+/* Base styles for input fields (grouped for efficiency) */
+.search-box,
+.scroll-picker-container,
+.small-input,
+.date-part-combined {
+  display: flex; /* Use flexbox for alignment */
+  align-items: center; /* Vertically center content */
+  height: 40px;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  outline: 0;
+  box-sizing: border-box; /* Include padding and border in element's total width and height */
+  font-family: inherit; /* Use body font */
+  font-size: 1em; /* Use body font size */
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+/* Padding for text inputs */
+.search-box,
+.small-input {
+  padding: 0 12px;
+}
+
+/* Specific style for the small 'Bhag' input */
+.small-input {
+  width: 70px;
+  text-align: center;
+  flex-shrink: 0; /* Prevent shrinking in flex layouts */
+}
+
+/* Base scroll picker container styles */
+.scroll-picker-container {
+  position: relative; /* For absolute positioning of list and pseudo-elements */
+  cursor: pointer;
+  padding: 0; /* Reset padding, text inside will handle it */
+}
+
+/* === Fused Date Picker Specific Styles === */
+.date-part-combined {
+  padding: 0 5px; /* Small horizontal padding for the combined box */
+  flex-grow: 1; /* Allow it to take available space */
+  position: relative; /* Positioning context for dropdowns inside */
+}
+/* Style for individual picker containers WITHIN the combined date box */
+.date-part-combined .scroll-picker-container {
+  border: none; /* Remove individual borders */
+  box-shadow: none; /* Remove individual shadows */
+  background: transparent; /* Make background see-through */
+  height: 100%;
+  flex-grow: 1; /* Allow year/month/day parts to share space */
+  flex-basis: 0; /* Ensure flex-grow works correctly */
+  border-radius: 0; /* No rounded corners inside */
+  padding: 0 2px; /* Minimal padding between parts */
+  transition: none; /* No transition needed */
+  position: relative; /* Positioning context for its list */
+}
+/* Style for the displayed text (year/month/day placeholder/value) */
+.date-part-combined .scroll-picker-text {
+    text-align: center; /* Center the year/month/day */
+    padding: 0 5px; /* Horizontal padding within its segment */
+    flex-grow: 1;
+    pointer-events: none; /* Text itself is not clickable */
+    user-select: none; /* Text cannot be selected */
+}
+/* Hide the default dropdown arrow within combined date picker parts */
+.date-part-combined .scroll-picker-container::after { display: none; }
+
+/* Separator style (e.g., '/') between date parts */
+.date-picker-separator {
+    padding: 0 3px;
+    color: #aaa;
+    align-self: center; /* Vertically align with flex items */
+    flex-shrink: 0;
+}
+/* --- End Fused Date Picker --- */
+
+
+/* === Hover/Focus Styles === */
+.search-box:hover,
+/* Don't apply hover to individual date parts, apply to the combined container */
+.scroll-picker-container:not(.date-part-combined .scroll-picker-container):hover,
+.small-input:hover,
+.date-part-combined:hover {
+  border-color: #aaa;
+  box-shadow: 0 2px 5px rgba(0,0,0,.15);
+}
+.search-box:focus,
+/* Don't apply focus to individual date parts, apply to the combined container */
+.scroll-picker-container:not(.date-part-combined .scroll-picker-container):focus-within,
+.small-input:focus,
+.date-part-combined:focus-within {
+  border-color: blue;
+  box-shadow: 0 0 0 3px rgba(0, 0, 255, 0.2); /* Focus ring */
+}
+
+
+/* === Scroll Picker Text & Arrow (General) === */
+.scroll-picker-text {
+  flex-grow: 1; /* Take available space */
+  white-space: nowrap; /* Prevent wrapping */
+  overflow: hidden; /* Hide overflow */
+  text-overflow: ellipsis; /* Show '...' for overflow */
+  pointer-events: none; /* Not interactive */
+  user-select: none; /* Not selectable */
+  color: #333;
+  padding: 0 10px; /* Default padding */
+  /* Add right padding ONLY if the arrow is visible (i.e., not in date-part-combined) */
+  padding-right: 25px;
+}
+/* Remove right padding for text within combined date picker as arrow is hidden */
+.date-part-combined .scroll-picker-text {
+    padding-right: 5px; /* Reset to smaller padding */
+    text-align: center; /* Ensure centered text (redundant but safe) */
+}
+
+/* Scroll Picker Arrow (General - Downward Triangle) */
+/* Only show arrow on containers NOT inside date-part-combined */
+.scroll-picker-container:not(.date-part-combined .scroll-picker-container)::after {
+    content: '';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    margin-top: -3px; /* Vertical centering */
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 5px 0 5px; /* top left/right bottom */
+    border-color: #555 transparent transparent transparent; /* Top color, rest transparent */
+    pointer-events: none;
+    transition: transform 0.2s ease;
+}
+/* Rotate arrow when expanded */
+.scroll-picker-container.expanded:not(.date-part-combined .scroll-picker-container)::after {
+    transform: rotate(180deg);
+}
+
+/* === Scroll Picker List (Dropdown) === */
+/* General list styles */
+.scroll-picker-list {
+  position: absolute;
+  top: calc(100% + 4px); /* Position below the container */
+  left: 0; /* Align with the left edge of the parent container */
+  width: 100%; /* Default to parent container's width */
+  background: #fff;
+  border-radius: 8px;
+  margin: 0;
+  padding: 5px 0; /* Vertical padding */
+  box-sizing: border-box;
+  max-height: 200px; /* Limit height and enable scroll */
+  overflow-y: auto;
+  z-index: 10; /* Ensure it's above other elements */
+  border: 1px solid #ccc;
+  box-shadow: 0 5px 10px rgba(0,0,0,.15);
+  display: none; /* Hidden by default */
+  /* Removed min-width: 100% as width: 100% covers it */
+  max-width: calc(100vw - 40px); /* Prevent excessive width on small screens */
+}
+
+/* --- Specific List Widths --- */
+/* NARROW width and positioning for lists inside the combined date picker */
+.date-part-combined .scroll-picker-list {
+    width: auto;      /* Let content determine width */
+    min-width: 52px !important;  /* Force a NARROWER minimum width */
+    max-width: 120px; /* Optional max width */
+    left: 0; /* Ensure alignment with its own picker part */
+}
+/* NARROW width for NeKaPa lists */
+.nekapa-vivaran .scroll-picker-list {
+    width: auto;
+    min-width: 90px !important; /* Force minimum width */
+    left: 0; /* Ensure alignment with its own picker part */
+}
+/* --- End Specific List Widths --- */
+
+/* Show list when container is expanded */
+.scroll-picker-container.expanded .scroll-picker-list { display: block; }
+
+/* Scroll Picker List Items */
+.scroll-picker-list li {
+  padding: 9px 15px;
+  font-size: 1em;
+  font-family: inherit;
+  cursor: pointer;
+  list-style: none;
+  white-space: normal; /* Allow wrapping for long items */
+  overflow-wrap: break-word; /* Break long words */
+  color: #333;
+  text-align: left; /* Default alignment */
+}
+/* Center align text ONLY in the specific narrow lists */
+.date-part-combined .scroll-picker-list li,
+.nekapa-vivaran .scroll-picker-list li {
+    text-align: center;
+}
+
+.scroll-picker-list li:hover { background-color: #eee; }
+
+/* === Date Range Picker Row === */
+.date-range-picker {
+    display: flex;
+    align-items: end; /* Align items (pickers, labels) to the bottom */
+    gap: 10px; /* Spacing between elements */
+    width: 100%;
+}
+.date-range-label {
+    margin: 0 5px; /* Spacing around 'देखि'/'सम्म' */
+    padding-bottom: 10px; /* Align baseline with inputs */
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* === Ne.Ka.Pa Vivaran Row === */
+.nekapa-vivaran {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  border: 1px solid #ddd;
+  padding: 10px 15px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+/* Label style within NeKaPa section */
+.nekapa-vivaran .field-label {
+    margin-bottom: 0; /* Remove bottom margin */
+    margin-right: 5px; /* Space after label */
+    padding-bottom: 10px; /* Align baseline */
+    white-space: nowrap;
+}
+/* Fixed width for picker containers inside NeKaPa */
+.nekapa-vivaran .scroll-picker-container {
+    width: 90px;
+    flex-shrink: 0;
+    position: relative; /* For list positioning */
+}
+/* Text alignment and padding within NeKaPa pickers */
+.nekapa-vivaran .scroll-picker-text {
+    text-align: center;
+    padding-right: 20px; /* Space for arrow */
+}
+/* Ensure arrow is shown and positioned correctly in NeKaPa pickers */
+.nekapa-vivaran .scroll-picker-container::after {
+    display: block; /* Override potential hiding rules */
+    right: 8px; /* Specific position */
+}
+/* Small input style reused */
+.nekapa-vivaran .small-input { flex-shrink: 0; }
+
+
+/* === Button Styles === */
+.button-container {
+    display: flex;
+    justify-content: center; /* Center buttons horizontally */
+    gap: 20px; /* Space between buttons */
+    margin-top: 30px; /* Space above buttons */
+}
+.button {
+  display: inline-block; /* Correct display type for buttons */
+  border: none;
+  color: #fff;
+  background-color: #0056b3; /* Default search button color */
+  border-radius: 8px;
+  padding: 10px 25px;
+  font-size: 1em;
+  font-family: inherit;
+  font-weight: 600;
+  text-align: center; /* Ensure text is centered */
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,.15);
+  transition: background-color .2s ease, box-shadow .15s ease, transform .15s ease;
+  transform: translateY(0);
+}
+.button:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,.2);
+    transform: translateY(-2px); /* Slight lift effect */
+}
+.button:active {
+    box-shadow: 0 1px 2px rgba(0,0,0,.2);
+    transform: translateY(1px); /* Slight press effect */
+}
+/* Specific button colors */
+.button-search { background-color: #0056b3; }
+.button-search:hover { background-color: #004494; }
+.button-clear { background-color: #28a745; }
+.button-clear:hover { background-color: #218838; }
