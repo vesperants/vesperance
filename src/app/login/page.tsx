@@ -1,10 +1,10 @@
-// src/app/login/page.tsx
 'use client';
 
 import React, { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+// Import AuthError for typed catch block
+import { signInWithEmailAndPassword, AuthError } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -45,19 +45,28 @@ export default function LoginPage() {
       if (!userCredential.user.emailVerified) {
         setError(translations.errorNotVerified[language]);
         await auth.signOut();
-        return;
+        // No need to return here, finally will run, state updates handle UI
       }
-      // Redirect handled by useEffect
-    } catch (err: any) {
-       if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-        setError(translations.errorCredentials[language]);
-      } else if (err.code === 'auth/invalid-email') {
-        setError(translations.errorInvalidEmail[language]);
-      } else if (err.code === 'auth/too-many-requests') {
-         setError(translations.errorTooManyRequests[language]);
-      } else {
-        setError(translations.errorLoginFailed[language]);
-      }
+      // Redirect handled by useEffect if verification passes implicitly
+    } catch (err) { // Use 'unknown' initially or directly use 'AuthError' if confident
+       // Type guard or cast if needed, but checking 'code' often implies AuthError
+       if ((err as AuthError).code) { // Check if 'code' exists, common for AuthError
+            const firebaseError = err as AuthError;
+            if (firebaseError.code === 'auth/user-not-found' || firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/invalid-credential') {
+                setError(translations.errorCredentials[language]);
+            } else if (firebaseError.code === 'auth/invalid-email') {
+                setError(translations.errorInvalidEmail[language]);
+            } else if (firebaseError.code === 'auth/too-many-requests') {
+                setError(translations.errorTooManyRequests[language]);
+            } else {
+                console.error("Login Error (Firebase):", firebaseError.code, firebaseError.message);
+                setError(translations.errorLoginFailed[language]);
+            }
+       } else {
+            // Handle non-Firebase errors or log differently
+            console.error("Login Error (Unknown):", err);
+            setError(translations.errorLoginFailed[language]);
+       }
     } finally {
         setIsLoggingIn(false);
     }

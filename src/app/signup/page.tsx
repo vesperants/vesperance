@@ -1,10 +1,10 @@
-// src/app/signup/page.tsx
 'use client';
 
 import React, { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+// Removed unused import: useRouter
 import Link from 'next/link';
-import { createUserWithEmailAndPassword, sendEmailVerification, ActionCodeSettings } from 'firebase/auth';
+// Import AuthError for typed catch block
+import { createUserWithEmailAndPassword, sendEmailVerification, ActionCodeSettings, AuthError } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore'; // Firestore functions
 import { auth, db } from '@/lib/firebase/config'; // Import auth and db
 
@@ -23,7 +23,7 @@ export default function SignUpPage() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
-  const router = useRouter();
+  // Removed unused variable: const router = useRouter();
 
   // Function to save user profile data to Firestore
   const saveUserProfile = async (userId: string, profileData: object) => {
@@ -35,7 +35,7 @@ export default function SignUpPage() {
         createdAt: serverTimestamp(), // Add a timestamp for when the profile was created
       });
       console.log('User profile saved to Firestore');
-    } catch (err)
+    } catch (err) // Keep type as 'unknown' or specify if needed, but log it
     {
       console.error('Error saving user profile to Firestore:', err);
       // Optionally notify the user or log this error more formally
@@ -102,18 +102,23 @@ export default function SignUpPage() {
       // Optional: Redirect after a delay or keep showing success message
       // setTimeout(() => router.push('/login'), 5000);
 
-    } catch (err: any) {
-      console.error('Registration Error:', err.code, err.message);
-      if (err.code === 'auth/email-already-in-use') {
-        setError('यो इमेल पहिले नै दर्ता गरिएको छ।'); // This email is already registered.
-      } else if (err.code === 'auth/weak-password') {
-        setError('पासवर्ड कमजोर छ। कृपया बलियो पासवर्ड प्रयोग गर्नुहोस्।'); // Password is too weak. Please use a stronger password.
-      } else if (err.code === 'auth/invalid-email') {
-         setError('अमान्य इमेल ढाँचा।'); // Invalid email format.
-      }
-      else {
-        setError('दर्ता असफल भयो। कृपया फेरि प्रयास गर्नुहोस्।'); // Registration failed. Please try again.
-      }
+    } catch (err) { // Use 'unknown' or 'AuthError'
+        if ((err as AuthError).code) { // Check if 'code' exists
+            const firebaseError = err as AuthError;
+            console.error('Registration Error (Firebase):', firebaseError.code, firebaseError.message);
+            if (firebaseError.code === 'auth/email-already-in-use') {
+                setError('यो इमेल पहिले नै दर्ता गरिएको छ।'); // This email is already registered.
+            } else if (firebaseError.code === 'auth/weak-password') {
+                setError('पासवर्ड कमजोर छ। कृपया बलियो पासवर्ड प्रयोग गर्नुहोस्।'); // Password is too weak. Please use a stronger password.
+            } else if (firebaseError.code === 'auth/invalid-email') {
+                setError('अमान्य इमेल ढाँचा।'); // Invalid email format.
+            } else {
+                setError('दर्ता असफल भयो। कृपया फेरि प्रयास गर्नुहोस्।'); // Registration failed. Please try again.
+            }
+        } else {
+            console.error('Registration Error (Unknown):', err);
+            setError('दर्ता असफल भयो। कृपया फेरि प्रयास गर्नुहोस्।'); // Registration failed. Please try again.
+        }
     } finally {
       setIsRegistering(false);
     }

@@ -1,4 +1,3 @@
-// src/app/profile/page.tsx
 'use client';
 
 import React, { useState, useEffect, FormEvent } from 'react';
@@ -8,9 +7,11 @@ import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext'; // Import
 import { translations } from '@/lib/translations';     // Import
 import { LanguageToggleSwitch } from '@/components/LanguageToggleSwitch'; // Import
-import { auth, db } from '@/lib/firebase/config';
+// Import db only from config, auth functions directly from firebase/auth
+import { db } from '@/lib/firebase/config';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+// Import AuthError for typed catch block
+import { updatePassword, EmailAuthProvider, reauthenticateWithCredential, AuthError } from 'firebase/auth';
 
 
 export default function ProfilePage() {
@@ -62,7 +63,7 @@ export default function ProfilePage() {
              console.log('No profile document found for user:', user.uid);
              setProfileError(translations.profileNotFoundError[language]); // Use translation
           }
-        } catch (error) {
+        } catch (error) { // Keep type as unknown or specify if needed
              console.error('Error fetching profile:', error);
              setProfileError(translations.profileFetchError[language]); // Use translation
         } finally {
@@ -86,7 +87,10 @@ export default function ProfilePage() {
           });
           setProfileSuccess(translations.profileUpdateSuccess[language]); // Use translation
           setTimeout(() => setProfileSuccess(null), 3000);
-      } catch (error) { setProfileError(translations.profileUpdateError[language]); } // Use translation
+      } catch (_error: unknown) { // Use _error: unknown as error isn't inspected
+          console.error('Error updating profile:', _error); // Log the actual error
+          setProfileError(translations.profileUpdateError[language]);
+      }
       finally { setIsUpdatingProfile(false); }
   };
 
@@ -102,17 +106,25 @@ export default function ProfilePage() {
 
       setIsChangingPassword(true);
       try {
+          // Re-authenticate user before password update for security
           const credential = EmailAuthProvider.credential(user.email, currentPassword);
           await reauthenticateWithCredential(user, credential);
+          // If re-authentication is successful, update the password
           await updatePassword(user, newPassword);
           setPasswordSuccess(translations.passwordChangeSuccess[language]); // Use translation
           setCurrentPassword(''); setNewPassword(''); setConfirmNewPassword('');
           setTimeout(() => setPasswordSuccess(null), 3000);
-      } catch (error: any) {
-          // Use translations for errors
-          if (error.code === 'auth/wrong-password') { setPasswordError(translations.passwordWrongError[language]); }
-          else if (error.code === 'auth/weak-password') { setPasswordError(translations.passwordWeakError[language]); }
-          else { setPasswordError(translations.passwordChangeError[language]); }
+      } catch (error) { // Type as AuthError as 'code' is checked
+           const firebaseError = error as AuthError;
+           console.error("Password Change Error:", firebaseError.code, firebaseError.message);
+           // Use translations for errors
+           if (firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/invalid-credential') { // Added invalid-credential check
+               setPasswordError(translations.passwordWrongError[language]);
+           } else if (firebaseError.code === 'auth/weak-password') {
+               setPasswordError(translations.passwordWeakError[language]);
+           } else {
+               setPasswordError(translations.passwordChangeError[language]);
+           }
       } finally { setIsChangingPassword(false); }
   };
 
