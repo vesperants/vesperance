@@ -1,7 +1,7 @@
 // src/app/search/searchEngine.ts
 import Papa, { LocalFile, ParseError as PapaParseError, ParseResult } from 'papaparse'; // Added LocalFile, PapaParseError, ParseResult imports
 import nepaliscript from 'nepscript'; // Correct default import based on documentation
-import Fuse from 'fuse.js'; // For fuzzy searching
+import Fuse, { IFuseOptions } from 'fuse.js'; // For fuzzy searching
 
 import { muddaMapping } from './muddaMapping'; // Adjust path if needed
 
@@ -288,7 +288,7 @@ export const searchData = async (criteria: SearchCriteria): Promise<SearchResult
                      }
                     resolve({ ...res, data: validData });
                 },
-                // *** FIX: Corrected type annotation for err from Papa.ParseError to Error ***
+                // Corrected type annotation for err from Papa.ParseError to Error
                 // The file parameter is optional and often a LocalFile or string depending on input
                 error: (err: Error, file?: LocalFile | string | undefined) => {
                     console.error("Papaparse fatal error:", err.message, file ? `(File: ${file instanceof File ? file.name : file})` : '');
@@ -439,7 +439,8 @@ export const searchData = async (criteria: SearchCriteria): Promise<SearchResult
     let finalFilteredResults = intermediateResults; // Start with results from Phase 1
 
     // --- Fuse.js Configuration ---
-    const fuseOptions: Fuse.IFuseOptions<CsvRow> = {
+    // *** FIX: Use IFuseOptions directly, not Fuse.IFuseOptions ***
+    const fuseOptions: IFuseOptions<CsvRow> = {
         minMatchCharLength: FUZZY_MIN_MATCH_LENGTH,
         threshold: FUZZY_SEARCH_THRESHOLD,
         distance: FUZZY_SEARCH_DISTANCE,
@@ -461,7 +462,8 @@ export const searchData = async (criteria: SearchCriteria): Promise<SearchResult
     const applyFuzzyFilter = (
         term: string,
         data: CsvRow[],
-        options: Fuse.IFuseOptions<CsvRow>
+        // *** FIX: Use IFuseOptions directly, not Fuse.IFuseOptions ***
+        options: IFuseOptions<CsvRow>
     ): CsvRow[] => {
         // Only filter if term is valid and there's data to filter
         if (!term || term.length < FUZZY_MIN_MATCH_LENGTH || data.length === 0) {
@@ -489,12 +491,11 @@ export const searchData = async (criteria: SearchCriteria): Promise<SearchResult
     // 6. Format and Return Final Results
     const finalResultsWithId: SearchResultItem[] = finalFilteredResults.map((row, index) => ({
         ...row,
-        // Use a stable ID from CSV if 'id' column exists and is valid, otherwise generate temporary one.
-        resultId: (row.id && String(row.id).trim() && !isNaN(Number(row.id))) ? Number(row.id) : `temp_${startTime}_${index}` // Added check for non-empty trimmed id
-    }));
-
-    const endTime = performance.now();
-    console.log(`Search complete. Found ${finalResultsWithId.length} final matching results in ${((endTime - startTime) / 1000).toFixed(2)}s.`);
-
-    return finalResultsWithId;
-};
+        resultId: (row.id && String(row.id).trim() && !isNaN(Number(row.id)))
+            ? Number(row.id)
+            : `temp_${startTime}_${index}`
+        } as SearchResultItem)); // <-- Add type assertion
+    
+        console.log(`Search completed in ${((performance.now() - startTime) / 1000).toFixed(2)}s. Found ${finalResultsWithId.length} results.`);
+        return finalResultsWithId;
+    };
