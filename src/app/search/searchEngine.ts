@@ -1,5 +1,5 @@
 // src/app/search/searchEngine.ts
-import Papa from 'papaparse';
+import Papa, { LocalFile, ParseError as PapaParseError, ParseResult } from 'papaparse'; // Added LocalFile, PapaParseError, ParseResult imports
 import nepaliscript from 'nepscript'; // Correct default import based on documentation
 import Fuse from 'fuse.js'; // For fuzzy searching
 
@@ -95,7 +95,6 @@ const fromNepaliNumber = (nepaliNumStr: string | undefined | null): string => {
             return trimmedStr;
         }
         return Array.from(trimmedStr).map(digit => nepaliDigitsMap[digit] ?? digit).join('');
-    // *** FIX: Added eslint-disable comment for the specific rule on the next line ***
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_e) {
         // console.error("Error in fromNepaliNumber:", _e, "Input:", nepaliNumStr);
@@ -128,7 +127,6 @@ const parseBSDateString = (bsDateStr: string | undefined | null): { year: number
                 return { year, month, day };
             }
         }
-    // *** FIX: Added eslint-disable comment for the specific rule on the next line ***
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_e) {
         // console.error("Error parsing BS Date String:", _e, "Input:", bsDateStr);
@@ -151,7 +149,6 @@ const getNumericBSDate = (year: number | null | undefined, month: number | null 
     }
     try {
         return year * 10000 + month * 100 + day;
-    // *** FIX: Added eslint-disable comment for the specific rule on the next line ***
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_e) {
         // console.error("Error in getNumericBSDate calculation:", _e, "Inputs:", year, month, day);
@@ -265,12 +262,12 @@ export const searchData = async (criteria: SearchCriteria): Promise<SearchResult
     let parsedData: CsvRow[] = [];
     try {
         console.time("CSV Parsing");
-        const results = await new Promise<Papa.ParseResult<CsvRow>>((resolve, reject) => {
+        const results = await new Promise<ParseResult<CsvRow>>((resolve, reject) => {
             Papa.parse<CsvRow>(csvText, {
                 header: true,
                 skipEmptyLines: 'greedy',
                 transformHeader: (header) => header?.trim().toLowerCase().replace(/\s+/g, '_') ?? '',
-                complete: (res) => {
+                complete: (res: ParseResult<CsvRow>) => { // Explicitly type 'res' here
                     const validData = res.data.filter(row =>
                         row != null &&
                         typeof row === 'object' &&
@@ -278,7 +275,11 @@ export const searchData = async (criteria: SearchCriteria): Promise<SearchResult
                         Object.values(row).some(val => val !== null && val !== undefined && String(val).trim() !== '')
                     );
                     if (res.errors.length > 0) {
-                        console.warn("CSV Parsing encountered warnings (showing first 5):", res.errors.slice(0, 5));
+                        // Papaparse errors are typically PapaParseError type
+                        res.errors.forEach((err: PapaParseError) => {
+                            console.warn(`CSV Parsing Warning: ${err.message} (Code: ${err.code}, Type: ${err.type}, Row: ${err.row})`);
+                        });
+                        console.warn("First 5 CSV Parsing warnings:", res.errors.slice(0, 5)); // Keep summary log
                     }
                      if (validData.length === 0 && res.meta.fields && res.meta.fields.length > 0) {
                          console.warn("CSV parsed with headers but no valid data rows found. Check CSV content after the header.");
@@ -287,9 +288,12 @@ export const searchData = async (criteria: SearchCriteria): Promise<SearchResult
                      }
                     resolve({ ...res, data: validData });
                 },
-                error: (err: Papa.ParseError) => {
-                    console.error("Papaparse fatal error:", err);
-                    reject(new Error("डाटा फाइल प्रशोधन गर्दा गम्भीर त्रुटि भयो। फाइलको संरचना जाँच्नुहोस्।"));
+                // *** FIX: Corrected type annotation for err from Papa.ParseError to Error ***
+                // The file parameter is optional and often a LocalFile or string depending on input
+                error: (err: Error, file?: LocalFile | string | undefined) => {
+                    console.error("Papaparse fatal error:", err.message, file ? `(File: ${file instanceof File ? file.name : file})` : '');
+                    // Reject with the standard Error object for better stack traces if needed downstream
+                    reject(new Error(`डाटा फाइल प्रशोधन गर्दा गम्भीर त्रुटि भयो। फाइलको संरचना जाँच्नुहोस्। Original error: ${err.message}`));
                 }
             });
         });
@@ -486,7 +490,7 @@ export const searchData = async (criteria: SearchCriteria): Promise<SearchResult
     const finalResultsWithId: SearchResultItem[] = finalFilteredResults.map((row, index) => ({
         ...row,
         // Use a stable ID from CSV if 'id' column exists and is valid, otherwise generate temporary one.
-        resultId: (row.id && !isNaN(Number(row.id))) ? Number(row.id) : `temp_${startTime}_${index}`
+        resultId: (row.id && String(row.id).trim() && !isNaN(Number(row.id))) ? Number(row.id) : `temp_${startTime}_${index}` // Added check for non-empty trimmed id
     }));
 
     const endTime = performance.now();
