@@ -95,7 +95,8 @@ const fromNepaliNumber = (nepaliNumStr: string | undefined | null): string => {
             return trimmedStr;
         }
         return Array.from(trimmedStr).map(digit => nepaliDigitsMap[digit] ?? digit).join('');
-    // *** FIX: Changed 'catch (e)' to 'catch (_e)' ***
+    // *** FIX: Added eslint-disable comment for the specific rule on the next line ***
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_e) {
         // console.error("Error in fromNepaliNumber:", _e, "Input:", nepaliNumStr);
         return ''; // Return empty string on error
@@ -127,7 +128,8 @@ const parseBSDateString = (bsDateStr: string | undefined | null): { year: number
                 return { year, month, day };
             }
         }
-    // *** FIX: Changed 'catch (e)' to 'catch (_e)' ***
+    // *** FIX: Added eslint-disable comment for the specific rule on the next line ***
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_e) {
         // console.error("Error parsing BS Date String:", _e, "Input:", bsDateStr);
     }
@@ -149,7 +151,8 @@ const getNumericBSDate = (year: number | null | undefined, month: number | null 
     }
     try {
         return year * 10000 + month * 100 + day;
-    // *** FIX: Changed 'catch (e)' to 'catch (_e)' ***
+    // *** FIX: Added eslint-disable comment for the specific rule on the next line ***
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_e) {
         // console.error("Error in getNumericBSDate calculation:", _e, "Inputs:", year, month, day);
         return null;
@@ -226,7 +229,7 @@ const safeTransliterate = (text: string | undefined | null): string => {
              return trimmedText; // Fallback
         }
 
-    } catch (e) { // This catch block error was already handled by commenting the console.error below
+    } catch (e) { // This variable 'e' IS used in the console.error below, so no error here.
         console.error(`Error transliterating "${trimmedText}" with nepscript:`, e);
         return trimmedText; // Fallback
     }
