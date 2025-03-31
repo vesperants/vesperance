@@ -71,7 +71,7 @@ const CSV_FILE_PATH = '/nkp_data.csv'; // Path relative to the /public folder
 const FUZZY_SEARCH_THRESHOLD = 0.4; // Fuse.js: 0 = exact, 1 = match anything. Lower is stricter.
 const FUZZY_SEARCH_DISTANCE = 150; // Fuse.js: How far apart matches can be.
 const FUZZY_MIN_MATCH_LENGTH = 3; // Minimum characters in input to trigger fuzzy search logic.
-// const DEBOUNCE_DELAY = 300; // *** CHANGE 1: Commented out unused constant ***
+// const DEBOUNCE_DELAY = 300; // Unused constant
 
 // --- Helper Functions ---
 
@@ -95,8 +95,9 @@ const fromNepaliNumber = (nepaliNumStr: string | undefined | null): string => {
             return trimmedStr;
         }
         return Array.from(trimmedStr).map(digit => nepaliDigitsMap[digit] ?? digit).join('');
-    } catch (e) { // *** Error: 'e' is defined but never used (already handled by commenting out below) ***
-        // console.error("Error in fromNepaliNumber:", e, "Input:", nepaliNumStr);
+    // *** FIX: Changed 'catch (e)' to 'catch (_e)' ***
+    } catch (_e) {
+        // console.error("Error in fromNepaliNumber:", _e, "Input:", nepaliNumStr);
         return ''; // Return empty string on error
     }
 };
@@ -126,8 +127,9 @@ const parseBSDateString = (bsDateStr: string | undefined | null): { year: number
                 return { year, month, day };
             }
         }
-    } catch (e) { // *** Error: 'e' is defined but never used (already handled by commenting out below) ***
-        // console.error("Error parsing BS Date String:", e, "Input:", bsDateStr);
+    // *** FIX: Changed 'catch (e)' to 'catch (_e)' ***
+    } catch (_e) {
+        // console.error("Error parsing BS Date String:", _e, "Input:", bsDateStr);
     }
     // console.warn(`Failed to parse BS date string: "${bsDateStr}"`);
     return null;
@@ -147,8 +149,9 @@ const getNumericBSDate = (year: number | null | undefined, month: number | null 
     }
     try {
         return year * 10000 + month * 100 + day;
-    } catch (e) { // *** Error: 'e' is defined but never used (already handled by commenting out below) ***
-        // console.error("Error in getNumericBSDate calculation:", e, "Inputs:", year, month, day);
+    // *** FIX: Changed 'catch (e)' to 'catch (_e)' ***
+    } catch (_e) {
+        // console.error("Error in getNumericBSDate calculation:", _e, "Inputs:", year, month, day);
         return null;
     }
 };
@@ -223,7 +226,7 @@ const safeTransliterate = (text: string | undefined | null): string => {
              return trimmedText; // Fallback
         }
 
-    } catch (e) {
+    } catch (e) { // This catch block error was already handled by commenting the console.error below
         console.error(`Error transliterating "${trimmedText}" with nepscript:`, e);
         return trimmedText; // Fallback
     }
@@ -353,7 +356,7 @@ export const searchData = async (criteria: SearchCriteria): Promise<SearchResult
 
     // 4. Filter Data - Phase 1: Exact Matches & Ranges
     console.time("Initial Filtering (Exact/Range)");
-    // *** CHANGE 2: Changed 'let' to 'const' ***
+    // Use const as intermediateResults is not reassigned after this filter
     const intermediateResults = parsedData.filter(row => {
         if (!row) return false;
 
