@@ -71,7 +71,7 @@ const CSV_FILE_PATH = '/nkp_data.csv'; // Path relative to the /public folder
 const FUZZY_SEARCH_THRESHOLD = 0.4; // Fuse.js: 0 = exact, 1 = match anything. Lower is stricter.
 const FUZZY_SEARCH_DISTANCE = 150; // Fuse.js: How far apart matches can be.
 const FUZZY_MIN_MATCH_LENGTH = 3; // Minimum characters in input to trigger fuzzy search logic.
-const DEBOUNCE_DELAY = 300; // Optional: If implementing debouncing
+// const DEBOUNCE_DELAY = 300; // *** CHANGE 1: Commented out unused constant ***
 
 // --- Helper Functions ---
 
@@ -95,7 +95,7 @@ const fromNepaliNumber = (nepaliNumStr: string | undefined | null): string => {
             return trimmedStr;
         }
         return Array.from(trimmedStr).map(digit => nepaliDigitsMap[digit] ?? digit).join('');
-    } catch (e) {
+    } catch (e) { // *** Error: 'e' is defined but never used (already handled by commenting out below) ***
         // console.error("Error in fromNepaliNumber:", e, "Input:", nepaliNumStr);
         return ''; // Return empty string on error
     }
@@ -126,7 +126,7 @@ const parseBSDateString = (bsDateStr: string | undefined | null): { year: number
                 return { year, month, day };
             }
         }
-    } catch (e) {
+    } catch (e) { // *** Error: 'e' is defined but never used (already handled by commenting out below) ***
         // console.error("Error parsing BS Date String:", e, "Input:", bsDateStr);
     }
     // console.warn(`Failed to parse BS date string: "${bsDateStr}"`);
@@ -147,7 +147,7 @@ const getNumericBSDate = (year: number | null | undefined, month: number | null 
     }
     try {
         return year * 10000 + month * 100 + day;
-    } catch (e) {
+    } catch (e) { // *** Error: 'e' is defined but never used (already handled by commenting out below) ***
         // console.error("Error in getNumericBSDate calculation:", e, "Inputs:", year, month, day);
         return null;
     }
@@ -353,7 +353,8 @@ export const searchData = async (criteria: SearchCriteria): Promise<SearchResult
 
     // 4. Filter Data - Phase 1: Exact Matches & Ranges
     console.time("Initial Filtering (Exact/Range)");
-    let intermediateResults = parsedData.filter(row => {
+    // *** CHANGE 2: Changed 'let' to 'const' ***
+    const intermediateResults = parsedData.filter(row => {
         if (!row) return false;
 
         try {

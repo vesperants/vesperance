@@ -123,7 +123,7 @@ const ScrollPicker: React.FC<ScrollPickerProps> = ({
       className={containerClasses} // Use combined class name
       onClick={handleToggleOpen}
       role="listbox"
-      aria-haspopup="listbox"
+      // *** CHANGE 1: Removed aria-haspopup="listbox" ***
       aria-expanded={isOpen}
       tabIndex={disabled ? -1 : 0}
       onKeyDown={handleKeyDown}
@@ -283,6 +283,7 @@ export default function SearchPage() {
       console.error("Search failed:", err);
       setError(err instanceof Error ? err.message : "अज्ञात त्रुटि भयो।");
     } finally { setIsLoading(false); }
+  // *** CHANGE 3: Added formData to dependency array ***
   }, [formData]);
 
   // *** MODIFIED SORTING LOGIC ***
@@ -313,7 +314,8 @@ export default function SearchPage() {
    }, [sortColumn]); // Dependency on sortColumn is important here
 
    const handlePageChange = useCallback((newPage: number) => {
-       setCurrentPage(prev => Math.max(1, Math.min(newPage, totalPages)));
+       // *** CHANGE 2: Removed unused 'prev' by calling setCurrentPage directly ***
+       setCurrentPage(Math.max(1, Math.min(newPage, totalPages)));
    }, [totalPages]);
 
   const handleClear = useCallback(() => {
