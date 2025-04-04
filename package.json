@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.0",
     "firebase": "^11.5.0",
     "fuse.js": "^7.1.0",
     "nepscript": "^1.0.18",

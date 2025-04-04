@@ -7,22 +7,16 @@ import './LanguageToggleSwitch.css'; // We'll create this CSS file
 
 export const LanguageToggleSwitch: React.FC = () => {
   const { language, toggleLanguage } = useLanguage();
-
   const isEnglish = language === 'en';
-
+  
   return (
-    <label className="language-switch" htmlFor="language-toggle" title={isEnglish ? "नेपालीमा बदल्नुहोस्" : "Switch to English"}>
-      <input
-        id="language-toggle"
-        type="checkbox"
-        checked={isEnglish}
-        onChange={toggleLanguage}
-        aria-label="Toggle language between Nepali and English"
-      />
-      <span className="slider">
-          <span className="lang-text lang-ne">ने</span>
-          <span className="lang-text lang-en">EN</span>
-      </span>
-    </label>
+    <button 
+      className={`language-button ${isEnglish ? 'nepali-option' : 'english-option'}`}
+      onClick={toggleLanguage}
+      title={isEnglish ? "नेपालीमा बदल्नुहोस्" : "Switch to English"}
+      aria-label={isEnglish ? "Switch to Nepali" : "Switch to English"}
+    >
+      {isEnglish ? 'ने' : 'EN'}
+    </button>
   );
 };

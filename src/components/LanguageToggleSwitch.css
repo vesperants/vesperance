@@ -1,90 +1,39 @@
 /* src/components/LanguageToggleSwitch.css */
 
-.language-switch {
-    position: relative;
-    display: inline-block;
-    width: 56px; /* Adjust width */
-    height: 28px; /* Adjust height */
-    cursor: pointer;
-    vertical-align: middle; /* Align nicely if placed next to other elements */
-  }
-  
-  /* Hide default HTML checkbox */
-  .language-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-  
-  /* The slider */
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    -webkit-transition: .4s;
-    transition: .4s;
-    border-radius: 28px; /* = height */
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 4px; /* Padding for text */
-  }
-  
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 22px; /* Slider button height */
-    width: 22px; /* Slider button width */
-    left: 3px;   /* Initial position */
-    bottom: 3px; /* Initial position */
-    background-color: white;
-    -webkit-transition: .4s;
-    transition: .4s;
-    border-radius: 50%;
-    z-index: 2;
-  }
-  
-  /* Text inside the slider */
-  .lang-text {
-      font-size: 11px;
-      font-weight: bold;
-      color: white;
-      z-index: 1;
-      user-select: none; /* Prevent text selection */
-  }
-  
-  .lang-ne {
-      padding-left: 2px; /* Adjust spacing */
-  }
-  .lang-en {
-      padding-right: 2px; /* Adjust spacing */
-  }
-  
-  
-  /* Checked state */
-  input:checked + .slider {
-    background-color: #2196F3; /* Blue when English */
-  }
-  
-  input:focus + .slider {
-    box-shadow: 0 0 1px #2196F3;
-  }
-  
-  input:checked + .slider:before {
-    -webkit-transform: translateX(28px); /* width - (2*left) - slider_width */
-    -ms-transform: translateX(28px);
-    transform: translateX(28px);
-  }
-  
-  /* Hide/show text based on state - optional but cleaner */
-  input:checked + .slider .lang-ne {
-      opacity: 0.5; /* Dim Nepali text when English is active */
-  }
-  
-  input:not(:checked) + .slider .lang-en {
-       opacity: 0.5; /* Dim English text when Nepali is active */
-  }
+/* Language button styles */
+.language-button {
+  font-size: 14px;
+  font-weight: bold;
+  min-width: 36px;
+  height: 28px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s, box-shadow 0.3s;
+  padding: 0 10px;
+  user-select: none;
+  color: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* EN button (when in Nepali) */
+.english-option {
+  background-color: #cccccc; /* Light gray background */
+}
+
+/* ने button (when in English) */
+.nepali-option {
+  background-color: #dddddd; /* Lighter gray background */
+}
+
+.language-button:hover {
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.language-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}

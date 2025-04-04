@@ -25,6 +25,7 @@ export const translations = {
         en: 'This is the homepage of the Nepal Law Journal search application. You can go to the search page or sign out from here.'
     },
     goToSearch: { ne: 'कानून खोज पृष्ठमा जानुहोस्', en: 'Go to Law Search Page' },
+    goToChat: { ne: 'भेस्प च्याटमा जानुहोस्', en: 'Go to Vesp Chat' },
     signOut: { ne: 'साइन आउट गर्नुहोस्', en: 'Sign Out' },
     editProfileTooltip: { ne: 'प्रोफाइल सम्पादन गर्नुहोस्', en: 'Edit Profile' },
     signOutFailed: { ne: 'साइन आउट गर्न असफल भयो।', en: 'Failed to sign out.' },
@@ -60,12 +61,39 @@ export const translations = {
     loginRequired: { ne: 'पहुँच गर्न लगइन आवश्यक छ।', en: 'Login required to access.' },
     atLeast6Chars: { ne: 'कम्तिमा ६ अक्षर', en: 'At least 6 characters' },
   
+    // --- Chat Page ---
+    chatTitle: { ne: 'भेस्प च्याट', en: 'Vesp Chat' },
+    backButton: { ne: 'पछाडि', en: 'Back' },
+    startConversation: { ne: 'कुराकानी सुरु गर्नुहोस्!', en: 'Start a conversation!' },
+    typeMessage: { ne: 'आफ्नो सन्देश टाइप गर्नुहोस्...', en: 'Type your message...' },
+    sendButton: { ne: 'पठाउनुहोस्', en: 'Send' },
+    placeholderResponse: { ne: 'यो एक प्लेसहोल्डर प्रतिक्रिया हो।', en: 'This is a placeholder response.' },
+    
     // --- SignUp Page (Add if needed) ---
     signUpTitle: { ne: 'नयाँ खाता दर्ता गर्नुहोस्', en: 'Register New Account' },
     confirmPasswordLabel: { ne: 'पासवर्ड पुष्टि गर्नुहोस्:', en: 'Confirm Password:' },
     registerButton: { ne: 'दर्ता गर्नुहोस्', en: 'Register' },
     registeringButton: { ne: 'दर्ता हुँदैछ...', en: 'Registering...' },
     // ... Add more signup translations as needed
-  };
+
+    // --- NEW KEYS ADDED --- 
+    errorMessage: {
+        ne: 'माफ गर्नुहोस्, केहि गडबड भयो।',
+        en: 'Sorry, something went wrong.',
+    },
+    you: {
+        ne: 'तपाईं',
+        en: 'You',
+    },
+    botName: {
+        ne: 'बोट',
+        en: 'Bot',
+    },
+    botTyping: {
+        ne: 'टाइप गर्दै...',
+        en: 'Typing...',
+    }
+    // --- END OF NEW KEYS ---
+};
   
-  export type TranslationKey = keyof typeof translations;
+export type TranslationKey = keyof typeof translations;

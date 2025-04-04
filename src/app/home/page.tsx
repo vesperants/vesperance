@@ -100,12 +100,16 @@ export default function HomePage() {
         {translations.homeDescription[language]}
       </p>
 
-      {/* Only the Search button remains here */}
-      <div className="button-container">
-        <Link href="/search" className="button button-search">
+      {/* Button container with vertical stack */}
+      <div className="button-container" style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '300px', margin: '0 auto' }}>
+        <Link href="/search" className="button button-search" style={{ width: '100%' }}>
           {translations.goToSearch[language]}
         </Link>
-        {/* Sign out button was moved */}
+        
+        {/* Vesp Chat button with same size */}
+        <Link href="/chat" className="button button-search" style={{ width: '100%', backgroundColor: '#4a6da7' }}>
+          {translations.goToChat[language]}
+        </Link>
       </div>
     </div>
   );
