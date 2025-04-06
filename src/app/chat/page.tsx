@@ -1,14 +1,13 @@
 'use client';
 
-import React, { CSSProperties, useEffect, useState } from 'react';
+import React, { CSSProperties, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { translations } from '@/lib/translations';
 import { LanguageToggleSwitch } from '@/components/LanguageToggleSwitch';
 import { ChatCanvas } from '@/components/ChatCanvas';
-// Comment out ReactMarkdown import as it's disabled for now
-// import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from 'react-markdown';
 import type { Content } from '@google/genai';
 
 // CSS styles to help prevent layout shifts across languages
@@ -45,7 +44,10 @@ export default function ChatPage() {
   const [chatHistory, setChatHistory] = useState<{sender: string, text: string, timestamp: Date, id?: string}[]>([]);
   const [showCanvas, setShowCanvas] = useState(false);
   const [isBotReplying, setIsBotReplying] = useState(false);
-  const [typingSpeed] = useState(20); // milliseconds per character (adjust as needed for new effect)
+  const [typingSpeed] = useState(20); // milliseconds per character
+  
+  // Reference to the chat messages container for scrolling
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Protect route - redirect to login if not authenticated
   useEffect(() => {
@@ -54,6 +56,32 @@ export default function ChatPage() {
       router.push('/login');
     }
   }, [user, loading, router]);
+
+  // Effect to auto-scroll to bottom when a new user message is added
+  useEffect(() => {
+    // Only scroll if there's at least one message in history
+    if (chatHistory.length > 0) {
+      // Get the last message
+      const lastMessage = chatHistory[chatHistory.length - 1];
+      
+      console.log("Chat updated. Last message from:", lastMessage.sender);
+      
+      // Check if the last message is from the user (not the bot)
+      if (lastMessage.sender === 'user') {
+        console.log("Scrolling to latest user message...");
+        // Scroll the chat container to the bottom with smooth behavior
+        if (chatContainerRef.current) {
+          console.log("Chat container ref found, scrolling to:", chatContainerRef.current.scrollHeight);
+          chatContainerRef.current.scrollTo({
+            top: chatContainerRef.current.scrollHeight,
+            behavior: 'smooth'
+          });
+        } else {
+          console.log("Chat container ref is null");
+        }
+      }
+    }
+  }, [chatHistory]); // Re-run whenever chatHistory changes
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +95,17 @@ export default function ChatPage() {
       timestamp: new Date()
     };
     setChatHistory(prevChatHistory => [...prevChatHistory, userMessageEntry]);
+    
+    // Manual scroll after adding user message - more direct approach
+    setTimeout(() => {
+      if (chatContainerRef.current) {
+        console.log("Direct scroll after user message");
+        chatContainerRef.current.scrollTo({
+          top: chatContainerRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }, 100); // Small delay to ensure the DOM has updated
 
     // Clear input field and reset textarea height
     setMessage('');
@@ -224,8 +263,8 @@ export default function ChatPage() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Send message on Enter key press unless Shift is held
-    if (e.key === 'Enter' && !e.shiftKey) {
+    // Send message on Enter key press unless Shift is held, message is not empty, and bot is not replying
+    if (e.key === 'Enter' && !e.shiftKey && message.trim() && !isBotReplying) {
       e.preventDefault(); // Prevent newline
       // Manually trigger the form submission
       const form = e.currentTarget.closest('form');
@@ -233,6 +272,11 @@ export default function ChatPage() {
         const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
         form.dispatchEvent(submitEvent);
       }
+    }
+    // If Enter is pressed without Shift but conditions aren't met (empty msg or bot replying),
+    // still prevent the default newline behavior.
+    else if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
     }
   };
 
@@ -313,8 +357,8 @@ export default function ChatPage() {
               </h2>
               {/* Input container (reusing the same structure as bottom input) */}
               <div style={{ width: '100%', maxWidth: '750px', padding: 0, borderRadius: '26px', backgroundColor: '#f5f5f5', border: '1px solid #ddd', boxShadow: '0 2px 6px rgba(0,0,0,0.1)', display: 'flex', overflow: 'visible', position: 'relative' }}>
-                <form onSubmit={handleSendMessage} style={{ display: 'flex', width: '100%', alignItems: 'flex-start', position: 'relative' }}>
-                  <div style={{ flex: 1, margin: '6px 0', position: 'relative' }}>
+                <form onSubmit={handleSendMessage} style={{ display: 'flex', width: '100%', alignItems: 'center', position: 'relative' }}>
+                  <div style={{ flex: 1, margin: '6px 0', position: 'relative', display: 'flex', alignItems: 'center' }}>
                     <textarea
                       value={message}
                       onChange={(e) => {
@@ -341,6 +385,7 @@ export default function ChatPage() {
                         overflow: 'auto',
                         lineHeight: '1.5',
                         boxSizing: 'border-box',
+                        fontFamily: "'Baloo 2', sans-serif"
                       }}
                       placeholder={translations.typeMessage[language]}
                       autoFocus
@@ -356,7 +401,7 @@ export default function ChatPage() {
                       }}
                     />
                   </div>
-                  <div style={{ position: 'absolute', right: '8px', bottom: '10px', zIndex: 2 }}>
+                  <div style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', zIndex: 2 }}>
                     <button 
                       type="submit" 
                       style={{
@@ -380,15 +425,18 @@ export default function ChatPage() {
             // Active chat view: Messages and bottom input
             <>
               {/* Chat messages container */}
-              <div style={{ 
-                flex: 1, 
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                padding: '20px',
-                display: 'flex',
-                flexDirection: 'column',
-                backgroundColor: '#fff'
-              }}>
+              <div 
+                ref={chatContainerRef} // Add the ref to the chat container
+                style={{ 
+                  flex: 1, 
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  padding: '20px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  backgroundColor: '#fff'
+                }}
+              >
                 {/* Wrapper div for messages (adjust width if canvas shown) */}
                 <div style={{
                   width: '100%',
@@ -423,7 +471,15 @@ export default function ChatPage() {
                         justifyContent: isUser ? 'flex-end' : 'flex-start',
                         marginBottom: '10px'
                       }}>
-                        <div style={messageStyle}>
+                        {/* Apply messageStyle for user, but modified styles for bot */}
+                        <div style={isUser ? messageStyle : {
+                          // Bot styles: Remove background and padding for less boxy look
+                          ...messageStyle, // Keep base text styles, alignment, etc.
+                          backgroundColor: 'transparent', 
+                          padding: '0', 
+                          boxShadow: 'none', // Ensure no shadow
+                          maxWidth: '100%' // Keep max width
+                        }}>
                           <span style={{...styles.messageSender, color: isUser ? '#007bff' : '#555'}}>
                             {isUser ? translations.you[language] : translations.botName[language]}
                           </span>
@@ -433,55 +489,19 @@ export default function ChatPage() {
                             </p>
                           ) : (
                             <div style={{...styles.messageText, ...fixedHeightStyles.messageText, margin: '4px 0 0'}}>
-                              {/* Render with optimized sequential fade: only last 2 chars in spans */}
-                              {
-                                (() => {
-                                  const text = chat.text;
-                                  const totalLength = text.length;
-
-                                  if (totalLength === 0) {
-                                    return null; // Nothing to render
-                                  }
-
-                                  const charStyleTransition: React.CSSProperties = {
-                                    display: 'inline-block', // Needed for smooth transition
-                                    transition: 'opacity 0.2s ease-out' // Smooth transition for opacity changes
-                                  };
-
-                                  // Handle very short strings first
-                                  if (totalLength === 1) {
-                                    return (
-                                      <span style={{ ...charStyleTransition, opacity: 0.3 }}>
-                                        {text === ' ' ? '\u00A0' : text}
-                                      </span>
-                                    );
-                                  }
-
-                                  // For length >= 2
-                                  const mainText = text.substring(0, totalLength - 2);
-                                  const secondLastChar = text.charAt(totalLength - 2);
-                                  const lastChar = text.charAt(totalLength - 1);
-
-                                  return (
-                                    <>
-                                      {/* Render the bulk of the text directly */}
-                                      {mainText.replace(/ /g, '\u00A0') /* Replace spaces in main block */}
-
-                                      {/* Span for second-to-last character */}
-                                      <span style={{ ...charStyleTransition, opacity: 0.6 }}>
-                                        {secondLastChar === ' ' ? '\u00A0' : secondLastChar}
-                                      </span>
-
-                                      {/* Span for the very last character */}
-                                      <span style={{ ...charStyleTransition, opacity: 0.3 }}>
-                                        {lastChar === ' ' ? '\u00A0' : lastChar}
-                                      </span>
-                                    </>
-                                  );
-                                })()
-                              }
-                              {/* ReactMarkdown disabled for this effect */}
-                              {/* ... (commented out ReactMarkdown block) ... */}
+                              {/* Render directly with ReactMarkdown for typewriter effect */}
+                              <div>
+                                <ReactMarkdown
+                                  components={{
+                                    // Keep default spacing reduction for elements
+                                    p: ({...props}) => <p style={{ marginBlockStart: '0.1em', marginBlockEnd: '0.1em' }} {...props} />, // Paragraphs
+                                    ul: ({...props}) => <ul style={{ marginBlockStart: '0.5em', marginBlockEnd: '0.5em', paddingInlineStart: '20px' }} {...props} />, // Unordered lists
+                                    li: ({...props}) => <li style={{ marginBlockStart: '0.1em', marginBlockEnd: '0.1em' }} {...props} /> // List items
+                                  }}
+                                >
+                                  {chat.text}
+                                </ReactMarkdown>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -534,8 +554,8 @@ export default function ChatPage() {
                   overflow: 'visible',
                   position: 'relative'
                 }}>
-                  <form onSubmit={handleSendMessage} style={{ display: 'flex', width: '100%', alignItems: 'flex-start', position: 'relative' }}>
-                    <div style={{ flex: 1, margin: '6px 0', position: 'relative' }}>
+                  <form onSubmit={handleSendMessage} style={{ display: 'flex', width: '100%', alignItems: 'center', position: 'relative' }}>
+                    <div style={{ flex: 1, margin: '6px 0', position: 'relative', display: 'flex', alignItems: 'center' }}>
                       <textarea
                         value={message}
                         onChange={(e) => {
@@ -562,6 +582,7 @@ export default function ChatPage() {
                           overflow: 'auto',
                           lineHeight: '1.5',
                           boxSizing: 'border-box',
+                          fontFamily: "'Baloo 2', sans-serif"
                         }}
                         placeholder={translations.typeMessage[language]}
                         autoFocus
@@ -577,7 +598,7 @@ export default function ChatPage() {
                         }}
                       />
                     </div>
-                    <div style={{ position: 'absolute', right: '8px', bottom: '10px', zIndex: 2 }}>
+                    <div style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', zIndex: 2 }}>
                       <button 
                         type="submit" 
                         style={{
