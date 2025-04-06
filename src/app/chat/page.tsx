@@ -46,6 +46,10 @@ export default function ChatPage() {
   const [isBotReplying, setIsBotReplying] = useState(false);
   const [typingSpeed] = useState(20); // milliseconds per character
   
+  // Reference to the AbortController to allow cancelling the fetch request
+  const abortControllerRef = useRef<AbortController | null>(null);
+  // Reference to signal the typing animation loop to stop
+  const stopTypingRef = useRef<boolean>(false);
   // Reference to the chat messages container for scrolling
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -87,6 +91,12 @@ export default function ChatPage() {
     e.preventDefault();
     const currentMessage = message.trim();
     if (!currentMessage) return;
+
+    // Reset stop flag for the new message
+    stopTypingRef.current = false;
+
+    // Create and store AbortController for this request
+    const controller = new AbortController();
 
     // Add user message to chat history immediately
     const userMessageEntry = {
@@ -150,6 +160,7 @@ export default function ChatPage() {
           message: currentMessage, 
           history: historyForApi 
         }),
+        signal: controller.signal
       });
 
       if (!response.ok) {
@@ -182,9 +193,9 @@ export default function ChatPage() {
 
       // Function to simulate typing effect character by character
       const typeNextCharacter = async () => {
-        if (characterQueue.length === 0) {
+        // Stop if flag is set or queue is empty
+        if (stopTypingRef.current || characterQueue.length === 0) {
           isCurrentlyTyping = false;
-          // No check needed for incomingTextBuffer here, the loop handles adding final chars
           return;
         }
 
@@ -206,8 +217,10 @@ export default function ChatPage() {
         // Wait for the typing delay (per character)
         await new Promise(resolve => setTimeout(resolve, typingSpeed));
 
-        // Continue typing the next character
-        typeNextCharacter();
+        // Continue typing the next character *only if not stopped*
+        if (!stopTypingRef.current) {
+          typeNextCharacter();
+        }
       };
 
       // Process the stream chunks
@@ -260,6 +273,16 @@ export default function ChatPage() {
     } finally {
       setIsBotReplying(false); // Bot has finished replying (or failed)
     }
+  };
+
+  // Function to handle stopping the bot's response generation
+  const handleStopGenerating = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort(); // Signal fetch to abort
+      abortControllerRef.current = null; // Clean up immediately
+    }
+    stopTypingRef.current = true; // Signal the typing loop to stop
+    setIsBotReplying(false); // Update state to re-enable input
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -399,24 +422,40 @@ export default function ChatPage() {
                           target.style.height = `${newHeight}px`;
                         }
                       }}
+                      disabled={isBotReplying} // Disable textarea when bot is replying
                     />
                   </div>
                   <div style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', zIndex: 2 }}>
-                    <button 
-                      type="submit" 
-                      style={{
-                        ...styles.sendButton,
-                        backgroundColor: (!message.trim() || isBotReplying) ? '#A4C2F4' : '#4285F4',
-                        cursor: (!message.trim() || isBotReplying) ? 'not-allowed' : 'pointer',
-                        boxShadow: (!message.trim() || isBotReplying) ? 'none' : '0 2px 5px rgba(0,0,0,0.2)'
-                      }} 
-                      disabled={!message.trim() || isBotReplying}
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 4L12 20" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M5 11L12 4L19 11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </button>
+                    {isBotReplying ? (
+                      // Show Stop button when bot is replying
+                      <button 
+                        type="button" // Important: type="button" to prevent form submission
+                        onClick={handleStopGenerating} 
+                        style={styles.stopButton} 
+                      >
+                        {/* Simple square icon for stop */}
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                          <rect width="24" height="24" />
+                        </svg>
+                      </button>
+                    ) : (
+                      // Show Send button when not replying
+                      <button 
+                        type="submit" 
+                        style={{
+                          ...styles.sendButton,
+                          backgroundColor: !message.trim() ? '#A4C2F4' : '#4285F4',
+                          cursor: !message.trim() ? 'not-allowed' : 'pointer',
+                          boxShadow: !message.trim() ? 'none' : '0 2px 5px rgba(0,0,0,0.2)'
+                        }} 
+                        disabled={!message.trim()}
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 4L12 20" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M5 11L12 4L19 11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </form>
               </div>
@@ -596,24 +635,40 @@ export default function ChatPage() {
                             target.style.height = `${newHeight}px`;
                           }
                         }}
+                        disabled={isBotReplying} // Disable textarea when bot is replying
                       />
                     </div>
                     <div style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', zIndex: 2 }}>
-                      <button 
-                        type="submit" 
-                        style={{
-                          ...styles.sendButton,
-                          backgroundColor: (!message.trim() || isBotReplying) ? '#A4C2F4' : '#4285F4',
-                          cursor: (!message.trim() || isBotReplying) ? 'not-allowed' : 'pointer',
-                          boxShadow: (!message.trim() || isBotReplying) ? 'none' : '0 2px 5px rgba(0,0,0,0.2)'
-                        }} 
-                        disabled={!message.trim() || isBotReplying}
-                      >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M12 4L12 20" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M5 11L12 4L19 11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </button>
+                      {isBotReplying ? (
+                        // Show Stop button when bot is replying
+                        <button 
+                          type="button" // Important: type="button" to prevent form submission
+                          onClick={handleStopGenerating} 
+                          style={styles.stopButton} 
+                        >
+                          {/* Simple square icon for stop */}
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="24" height="24" />
+                          </svg>
+                        </button>
+                      ) : (
+                        // Show Send button when not replying
+                        <button 
+                          type="submit" 
+                          style={{
+                            ...styles.sendButton,
+                            backgroundColor: !message.trim() ? '#A4C2F4' : '#4285F4',
+                            cursor: !message.trim() ? 'not-allowed' : 'pointer',
+                            boxShadow: !message.trim() ? 'none' : '0 2px 5px rgba(0,0,0,0.2)'
+                          }} 
+                          disabled={!message.trim()}
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 4L12 20" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M5 11L12 4L19 11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
+                      )}
                     </div>
                   </form>
                 </div>
@@ -682,5 +737,20 @@ const styles: {[key: string]: React.CSSProperties} = {
   },
   messageText: {
     ...fixedHeightStyles.messageText
+  },
+  stopButton: {
+    backgroundColor: '#dc3545', // Red color
+    color: 'white', // Ensures icon inherits color if fill removed
+    border: 'none',
+    borderRadius: '50%', // Make it circular
+    width: '40px', // Match send button size
+    height: '40px', // Match send button size
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'background-color 0.2s ease',
+    padding: '0',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.2)', // Add shadow like send button
   }
 }; 
