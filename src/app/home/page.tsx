@@ -12,6 +12,12 @@ import { LanguageToggleSwitch } from '@/components/LanguageToggleSwitch'; // Imp
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase/config';
 
+type ChatMessage = {
+  sender: string;
+  text: string;
+  timestamp: Date;
+  id?: string; 
+}
 
 export default function HomePage() {
   const { user, loading } = useAuth();

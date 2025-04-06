@@ -1,131 +1,145 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { GoogleGenAI, Content } from '@google/genai';
 
 // Define the expected request body structure from the frontend
 interface ChatRequestBody {
   message: string;
-}
-
-// Define the response body structure for the frontend
-interface ChatResponseBody {
-  reply: string;
-}
-
-// Define the structure for the Gemini API request body
-interface GeminiRequestBody {
-  contents: {
-    parts: { text: string }[];
-  }[];
-}
-
-// Define (partially) the structure of the Gemini API response
-// We only need the text from the first candidate's first part
-interface GeminiResponseBody {
-  candidates?: {
-    content: {
-      parts: { text: string }[];
-    };
-  }[];
-  error?: {
-    code: number;
-    message: string;
-    status: string;
-  };
+  history: Content[];
 }
 
 /**
  * POST handler for the /api/chat endpoint.
- * Receives a user message, forwards it to the Gemini API,
- * and returns the bot's reply.
+ * Receives a user message and conversation history, forwards it to the Gemini API 
+ * using streaming, and returns the bot's reply as a stream.
  * 
  * @param {NextRequest} request - The incoming request object.
- * @returns {Promise<NextResponse>} - The response object containing the bot's reply or an error.
+ * @returns {Promise<Response>} - A stream of text from Gemini API.
  */
-export async function POST(request: NextRequest): Promise<NextResponse<ChatResponseBody | { error: string; details?: string }>> {
+export async function POST(request: NextRequest): Promise<Response> {
   // 1. Get Gemini API Key from environment variables
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     console.error("Error: GEMINI_API_KEY environment variable is not set.");
-    return NextResponse.json(
-      { 
-        error: 'API key not configured', 
-        details: 'The Gemini API key is missing on the server.' 
-      },
-      { status: 500 } // Internal Server Error
-    );
+    return new Response(JSON.stringify({ 
+      error: 'API key not configured', 
+      details: 'The Gemini API key is missing on the server.' 
+    }), { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
   try {
     // 2. Parse the incoming request body from the frontend
     const body: ChatRequestBody = await request.json();
     const userMessage = body.message;
+    const history = body.history || [];
 
-    // Basic validation
+    // Basic validation for message
     if (!userMessage || typeof userMessage !== 'string' || userMessage.trim().length === 0) {
-      return NextResponse.json({ error: 'Invalid message format' }, { status: 400 }); // Bad Request
+      return new Response(JSON.stringify({ error: 'Invalid message format' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Basic validation for history (optional, depends on how strict you want to be)
+    if (!Array.isArray(history)) {
+       return new Response(JSON.stringify({ error: 'Invalid history format' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
-    // 3. Construct the request body for the Gemini API
-    const geminiRequestBody: GeminiRequestBody = {
-      contents: [
-        {
-          parts: [{ text: userMessage }],
-        },
-      ],
-    };
+    // 3. Initialize the Gemini client
+    const ai = new GoogleGenAI({ apiKey });
 
-    // 4. Define the Gemini API endpoint URL (using gemini-1.5-flash model)
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // 4. Prepare the content for the API call including history
+    const contents: Content[] = [
+      ...history,
+      { role: 'user', parts: [{ text: userMessage }] }
+    ];
 
-    // 5. Make the POST request to the Gemini API
-    const geminiResponse = await fetch(apiUrl, {
-      method: 'POST',
+    // 5. Create a streaming response using Web Streams API
+    const encoder = new TextEncoder();
+    const stream = new TransformStream();
+    const writer = stream.writable.getWriter();
+
+    // 6. Execute streaming in the background
+    (async () => {
+      try {
+        console.log("Backend: Calling generateContentStream with history..."); // Log before call
+        const response = await ai.models.generateContentStream({
+          model: "gemini-1.5-flash", 
+          contents: contents,
+        });
+        console.log("Backend: generateContentStream call completed."); // Log after call
+
+        console.log("Backend: Starting to process stream...");
+        let chunkIndex = 0;
+        for await (const chunk of response) {
+          console.log(`Backend: Processing chunk index: ${chunkIndex}`); // Log chunk index
+          let text: string | undefined;
+          if (chunk && typeof chunk.text !== 'undefined') {
+             try {
+                 text = chunk.text;
+             } catch (e) {
+                 console.error(`Backend: Error accessing chunk.text property[${chunkIndex}]:`, e);
+             }
+          } else {
+              console.log(`Backend: chunk.text property not available for chunk[${chunkIndex}]`);
+              if(chunk) console.log("Chunk type:", typeof chunk);
+          }
+          console.log(`Backend: Chunk[${chunkIndex}] text:`, text);
+          if (text) {
+            console.log(`Backend: Writing chunk[${chunkIndex}] to output stream.`);
+            await writer.write(encoder.encode(text));
+          } else {
+            console.log(`Backend: Chunk[${chunkIndex}] has no text or text could not be extracted.`);
+          }
+          chunkIndex++;
+        }
+
+        console.log(`Backend: Finished processing stream. Total chunks: ${chunkIndex}`);
+        writer.close();
+      } catch (error) {
+        console.error("Backend Streaming error:", error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown streaming error';
+        try {
+          if (writer) {
+            await writer.write(encoder.encode(`[ERROR] ${errorMessage}`));
+          }
+        } catch (writeError) {
+          console.error("Backend: Error writing error message to stream:", writeError);
+        } finally {
+          try {
+            if (writer) {
+                await writer.close();
+            }
+          } catch (closeError) {
+            console.error("Backend: Error closing writer after error:", closeError);
+          }
+        }
+      }
+    })();
+
+    return new Response(stream.readable, {
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
       },
-      body: JSON.stringify(geminiRequestBody),
     });
 
-    // 6. Handle potential errors from the Gemini API
-    if (!geminiResponse.ok) {
-      const errorData: GeminiResponseBody = await geminiResponse.json();
-      console.error("Gemini API Error:", geminiResponse.status, errorData);
-      return NextResponse.json(
-        { 
-          error: 'Gemini API request failed', 
-          details: errorData.error?.message || `Status code: ${geminiResponse.status}` 
-        },
-        { status: geminiResponse.status } // Propagate the status code
-      );
-    }
-
-    // 7. Parse the successful Gemini API response
-    const geminiData: GeminiResponseBody = await geminiResponse.json();
-
-    // 8. Extract the reply text
-    // Safely access the nested structure
-    const botReply = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!botReply) {
-      console.error("Error: Could not extract reply text from Gemini response:", geminiData);
-      return NextResponse.json(
-        { 
-          error: 'Failed to parse Gemini response', 
-          details: 'The structure of the response was unexpected.'
-        },
-        { status: 500 } // Internal Server Error
-      );
-    }
-
-    // 9. Return the bot's reply to the frontend
-    return NextResponse.json({ reply: botReply });
-
   } catch (error) {
-    // 10. Handle unexpected errors (e.g., network issues, JSON parsing errors)
     console.error("Error in /api/chat:", error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    return NextResponse.json(
-      { error: 'Failed to process chat message', details: errorMessage },
-      { status: 500 } // Internal Server Error
-    );
+    return new Response(JSON.stringify({ 
+      error: 'Failed to process chat message', 
+      details: errorMessage 
+    }), { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 } 
