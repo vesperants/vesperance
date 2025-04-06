@@ -1,0 +1,63 @@
+.shelfContainer {
+  position: fixed; /* Or absolute, depending on layout */
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px; /* Adjust width as needed */
+  background-color: #f4f4f4; /* Example background color */
+  border-right: 1px solid #ccc; /* Example border */
+  padding: 20px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Optional shadow */
+  z-index: 1100; /* Ensure it's above other content but potentially below modals */
+  overflow-y: auto; /* Allow scrolling if content exceeds height */
+  transition: transform 0.3s ease-in-out; /* Smooth transition */
+  transform: translateX(0); /* Default state (when open) */
+}
+
+/* Styles for when the shelf is closed (if using a class toggle instead of null render) */
+/* 
+.shelfContainer.closed {
+  transform: translateX(-100%); 
+} 
+*/
+
+.shelfHeader {
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+.shelfHeader h2 {
+  margin: 0;
+  font-size: 1.2em;
+}
+
+.shelfContent {
+  /* Add styles for the main content area */
+}
+
+.shelfContent ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.shelfContent li {
+  padding: 8px 0;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+
+.shelfContent li:hover {
+  background-color: #e9e9e9;
+}
+
+.closeButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+} 

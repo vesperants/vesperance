@@ -2,20 +2,20 @@
 
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+// import Link from 'next/link'; // REMOVE: No longer needed
 import { useAuth } from '@/context/AuthContext';
-import { useLanguage } from '@/context/LanguageContext'; // Import
-import { translations } from '@/lib/translations';     // Import
-import { LanguageToggleSwitch } from '@/components/LanguageToggleSwitch'; // Import
+import { useLanguage } from '@/context/LanguageContext';
+import { translations } from '@/constants/translations';     // Updated import path
+import { LanguageToggleSwitch } from '@/components/LanguageToggleSwitch'; // Import the LanguageToggleSwitch
 // Import db only from config, auth functions directly from firebase/auth
-import { db } from '@/lib/firebase/config';
+import { db } from '@/services/firebase/config';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 // Import AuthError for typed catch block
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential, AuthError } from 'firebase/auth';
 
 
 export default function ProfilePage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const { language } = useLanguage(); // Get language
   const router = useRouter();
 
@@ -139,17 +139,29 @@ export default function ProfilePage() {
     // Added paddingTop to main container to make space for absolute positioned elements
     <div className="container container--medium" style={{ position: 'relative', paddingTop: '70px' }}> {/* Adjusted padding */}
 
-        {/* --- Back to Homepage Button --- */}
-        <div style={{ position: 'absolute', top: '21px', left: '15px' }}> {/* Position top left */}
-             {/* Removed arrow, added style to remove underline */}
-             <Link
-               href="/home"
-               className="button button-clear"
-               style={{ textDecoration: 'none' }} // Add this line to remove underline
-             >
-                 {translations.goBackHome[language]} {/* Removed arrow */}
-             </Link>
-        </div>
+        {/* --- Back Button (Chevron) --- */}
+        <button
+          onClick={() => router.back()}
+          style={{
+            position: 'absolute',
+            top: '15px',
+            left: '15px',
+            background: 'none',
+            border: 'none',
+            padding: '10px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#555' // Add a default color for the icon
+          }}
+          title={translations.goBack[language] || "Go Back"}
+        >
+          {/* SVG Chevron Left Icon */}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
         {/* --- End Back Button --- */}
 
         {/* --- Language Toggle --- */}
@@ -226,7 +238,37 @@ export default function ProfilePage() {
           </div>
         </form>
       </section>
-       {/* Link back home - REMOVED FROM HERE */}
+
+      {/* --- Sign Out Section --- */}
+      <section style={{ marginTop: '40px', paddingTop: '30px', borderTop: '1px solid #eee', textAlign: 'center' }}>
+        <button
+          onClick={async () => { // Define async onClick handler
+            try {
+              await signOut(); // Call signOut from useAuth
+              router.push('/login'); // Redirect after successful sign out
+            } catch (error) {
+              console.error("Sign Out Error (Profile Page):", error);
+              // Use translation for the alert
+              alert(translations.signOutFailed[language] || 'Sign out failed. Please try again.'); 
+            }
+          }}
+          className="button" // Use a base button class if available
+          style={{
+            backgroundColor: '#dc3545', // Red color for sign out/danger
+            color: 'white',
+            padding: '10px 20px',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            fontSize: '1em'
+          }}
+        >
+          {/* Use the existing signOutButton translation */}
+          {translations.signOutButton[language] || 'Sign Out'} 
+        </button>
+      </section>
+      {/* --- End Sign Out Section --- */}
+
     </div>
   );
 }

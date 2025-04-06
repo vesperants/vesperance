@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 // Import AuthError for typed catch block
 import { signInWithEmailAndPassword, AuthError } from 'firebase/auth';
-import { auth } from '@/lib/firebase/config';
+import { auth } from '@/services/firebase/config';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
-import { translations } from '@/lib/translations';
+import { translations } from '@/constants/translations';
 import { LanguageToggleSwitch } from '@/components/LanguageToggleSwitch';
 
 export default function LoginPage() {
@@ -23,7 +23,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (loading) return;
     if (user && user.emailVerified) {
-        router.push('/home');
+        router.push('/chat');
     } else if (user && !user.emailVerified) {
         auth.signOut(); // Sign out unverified user if they land here
     }

@@ -1,4 +1,11 @@
-// src/lib/firebase/config.ts
+/**
+ * Firebase Configuration
+ *
+ * This file initializes and exports Firebase services (Authentication, Firestore)
+ * using environment variables for configuration.
+ * It ensures Firebase is initialized only once, compatible with SSR.
+ */
+// src/services/firebase/config.ts
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore"; 

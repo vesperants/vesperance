@@ -2,19 +2,21 @@
 'use client'; // This context will be used in client components
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '../lib/firebase/config'; // Adjust path if needed
+import { onAuthStateChanged, User, signOut as firebaseSignOut } from 'firebase/auth';
+import { auth } from '../services/firebase/config'; // Updated import path
 
 // Define the shape of the context data
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  signOut: () => Promise<void>;
 }
 
 // Create the context with a default value
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true, // Start in loading state
+  signOut: async () => { console.error("SignOut function not provided by AuthProvider"); },
 });
 
 // Create a provider component
@@ -38,7 +40,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => unsubscribe();
   }, []); // Empty dependency array ensures this runs only once on mount
 
-  const value = { user, loading };
+  const handleSignOut = async () => {
+    try {
+      await firebaseSignOut(auth);
+      console.log("User signed out successfully.");
+    } catch (error) {
+      console.error("Error signing out: ", error);
+      throw error;
+    }
+  };
+
+  const value = { user, loading, signOut: handleSignOut };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

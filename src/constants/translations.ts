@@ -1,3 +1,12 @@
+/**
+ * Application Translations
+ *
+ * This file contains all the text strings used in the application,
+ * supporting both Nepali (ne) and English (en) languages.
+ * Each key maps to an object containing the translations for each language.
+ *
+ * The `TranslationKey` type is exported to ensure type safety when accessing translations.
+ */
 // src/lib/translations.ts
 
 export const translations = {
@@ -19,14 +28,14 @@ export const translations = {
     errorFillBoth: { ne: 'कृपया इमेल र पासवर्ड दुवै प्रविष्ट गर्नुहोस्।', en: 'Please enter both email and password.' },
     errorNotVerified: { ne: 'लगइन असफल भयो वा इमेल प्रमाणित छैन।', en: 'Login failed or email not verified.' },
     // --- Home Page ---
-    homeTitle: { ne: 'स्वागत छ!', en: 'Welcome!' },
-    homeDescription: {
-        ne: 'यो नेपाल कानून पत्रीका खोज अनुप्रयोगको गृहपृष्ठ हो। तपाई यहाँबाट खोज पृष्ठमा जान वा साइन आउट गर्न सक्नुहुन्छ।',
-        en: 'This is the homepage of the Nepal Law Journal search application. You can go to the search page or sign out from here.'
-    },
-    goToSearch: { ne: 'कानून खोज पृष्ठमा जानुहोस्', en: 'Go to Law Search Page' },
-    goToChat: { ne: 'भेस्प च्याटमा जानुहोस्', en: 'Go to Vesp Chat' },
-    signOut: { ne: 'साइन आउट गर्नुहोस्', en: 'Sign Out' },
+    // homeTitle: { ne: 'स्वागत छ!', en: 'Welcome!' },
+    // homeDescription: {
+    //     ne: 'यो नेपाल कानून पत्रीका खोज अनुप्रयोगको गृहपृष्ठ हो। तपाई यहाँबाट खोज पृष्ठमा जान वा साइन आउट गर्न सक्नुहुन्छ।',
+    //     en: 'This is the homepage of the Nepal Law Journal search application. You can go to the search page or sign out from here.'
+    // },
+    // goToSearch: { ne: 'कानून खोज पृष्ठमा जानुहोस्', en: 'Go to Law Search Page' },
+    // goToChat: { ne: 'भेस्प च्याटमा जानुहोस्', en: 'Go to Vesp Chat' },
+    // signOut: { ne: 'साइन आउट गर्नुहोस्', en: 'Sign Out' },
     editProfileTooltip: { ne: 'प्रोफाइल सम्पादन गर्नुहोस्', en: 'Edit Profile' },
     signOutFailed: { ne: 'साइन आउट गर्न असफल भयो।', en: 'Failed to sign out.' },
     loadingOrAccessDenied: { ne: 'लोड हुँदैछ वा पहुँच अस्वीकृत...', en: 'Loading or Access Denied...' },
@@ -40,7 +49,7 @@ export const translations = {
     saveProfileButton: { ne: 'प्रोफाइल सुरक्षित गर्नुहोस्', en: 'Save Profile' },
     savingProfileButton: { ne: 'अद्यावधिक हुँदै...', en: 'Updating...' },
     profileUpdateSuccess: { ne: 'प्रोफाइल सफलतापूर्वक अद्यावधिक गरियो!', en: 'Profile updated successfully!' },
-    profileUpdateError: { ne: 'प्रोफाइल अद्यावधिक गर्न असफल भयो।', en: 'Failed to update profile.' },
+    profileUpdateError: { ne: "प्रोफाइल अद्यावधिक गर्दा त्रुटि भयो।", en: "Error updating profile." },
     profileFetchError: { ne: 'प्रोफाइल ल्याउन असफल भयो।', en: 'Failed to fetch profile.' },
     profileNotFoundError: { ne: 'प्रोफाइल फेला परेन।', en: 'Profile not found.' },
     fillNameError: { ne: 'कृपया नाम भर्नुहोस्।', en: 'Please fill in the name.' },
@@ -92,7 +101,16 @@ export const translations = {
     botTyping: {
         ne: 'टाइप गर्दै...',
         en: 'Typing...',
-    }
+    },
+    fileAlreadySelected: { ne: "फाइल पहिले नै चयन गरिएको छ।", en: "File already selected." },
+    fileReadError: { ne: "फाइल पढ्न त्रुटि", en: "Error reading file" },
+    fileUploadSuccess: { ne: "फाइल सफलतापूर्वक अपलोड भयो", en: "File uploaded successfully" },
+    // Add Sign Out button text
+    signOutButton: { ne: "साइन आउट", en: "Sign Out" },
+    // Add translation for the back button tooltip
+    goBack: { ne: "पछाडि जानुहोस्", en: "Go Back" },
+    // Add translation for shelf toggle button tooltip
+    toggleShelf: { ne: "मेनु टगल गर्नुहोस्", en: "Toggle Menu" },
     // --- END OF NEW KEYS ---
 };
   
